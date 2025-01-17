@@ -1,6 +1,7 @@
 """This is a dummy example"""
 
 import os
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -10,14 +11,15 @@ import openmeteo_requests  # type: ignore
 import pandas as pd  # type: ignore
 import requests_cache
 from openmeteo_sdk.WeatherApiResponse import WeatherApiResponse  # type: ignore
-from references import (  # type: ignore
+from retry_requests import retry  # type: ignore
+
+from src.module_1.references import (
 	API_URL,
 	COORDINATES,
 	END_DATE,
 	INI_DATE,
 	VARIABLES,
 )
-from retry_requests import retry  # type: ignore
 
 
 @dataclass
@@ -92,7 +94,6 @@ class Meteo:
 	@staticmethod
 	def get_hourly_response(response: WeatherApiResponse) -> pd.DataFrame:
 		hourly = response.Hourly()
-		print(hourly.Interval())
 		hourly_data = {
 			'date': pd.date_range(
 				start=pd.to_datetime(hourly.Time(), unit='s', utc=True),
@@ -107,6 +108,12 @@ class Meteo:
 
 	@staticmethod
 	def compute_additional_params(df: pd.DataFrame) -> pd.DataFrame:
+		warnings.filterwarnings(
+			'ignore',
+			category=UserWarning,
+			message='Converting to PeriodArray/Index representation '
+			'will drop timezone information',
+		)
 		df['date'] = pd.to_datetime(df['date'])
 		df['month'] = df['date'].dt.to_period('M')
 		df_monthly = (
@@ -157,6 +164,7 @@ if __name__ == '__main__':
 	FIG_FOLDER = os.path.join(script_dir, 'figs')
 	os.makedirs(FIG_FOLDER, exist_ok=True)
 	data = Meteo(['Madrid', 'London', 'Rio']).data
+	print(Meteo(['Madrid']).data)
 	parameters = ['temperature_2m_mean', 'precipitation_sum', 'wind_speed_10m_max']
 	[
 		Meteo.plot_weather_parameter(
