@@ -3,14 +3,21 @@
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import matplotlib.pyplot as plt
-import openmeteo_requests
-import pandas as pd
+import openmeteo_requests  # type: ignore
+import pandas as pd  # type: ignore
 import requests_cache
-from openmeteo_sdk.WeatherApiResponse import WeatherApiResponse
-from references import API_URL, COORDINATES, END_DATE, INI_DATE, VARIABLES
-from retry_requests import retry
+from openmeteo_sdk.WeatherApiResponse import WeatherApiResponse  # type: ignore
+from references import (  # type: ignore
+	API_URL,
+	COORDINATES,
+	END_DATE,
+	INI_DATE,
+	VARIABLES,
+)
+from retry_requests import retry  # type: ignore
 
 
 @dataclass
@@ -32,7 +39,7 @@ class Meteo:
 		self.cities = cities
 
 	@property
-	def date(self):
+	def date(self) -> Date:
 		return Date(INI_DATE, END_DATE)
 
 	def setup(self) -> None:
@@ -40,7 +47,7 @@ class Meteo:
 		retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
 		self.openmeteo = openmeteo_requests.Client(session=retry_session)
 
-	def get_data_meteo_api(self, city_name: str):
+	def get_data_meteo_api(self, city_name: str) -> WeatherApiResponse:
 		city = City(
 			name=city_name,
 			latitude=COORDINATES[city_name]['latitude'],
@@ -51,12 +58,12 @@ class Meteo:
 		self.responses = self.call_api(API_URL, params)
 		return self.responses
 
-	def call_api(self, api_url, params):
+	def call_api(self, api_url: str, params: dict[str, Any]) -> WeatherApiResponse:
 		# TODO: validate response and handle possible errors
 		return self.openmeteo.weather_api(api_url, params=params)
 
 	@staticmethod
-	def define_params(city: City, date: Date) -> dict:
+	def define_params(city: City, date: Date) -> dict[str, Any]:
 		return {
 			'latitude': city.latitude,
 			'longitude': city.longitude,
@@ -66,8 +73,10 @@ class Meteo:
 		}
 
 	@property
-	def data(self):
+	def data(self) -> pd.DataFrame:
 		df = pd.DataFrame({})
+		if self.cities is None:
+			raise ValueError('`cities` is None, but should be a list of str')
 		for city in self.cities:
 			df_ = self.get_city_data(city)
 			df = pd.concat([df, df_])
@@ -118,7 +127,7 @@ class Meteo:
 		parameter: str = 'temperature_2m_mean',
 		title: str | None = '',
 		output_filename: Path | str | None = None,
-	):
+	) -> None:
 		if parameter not in df.columns:
 			raise ValueError(f"Parameter '{parameter}' not found in DataFrame.")
 		fig = plt.figure(figsize=(16, 8))
