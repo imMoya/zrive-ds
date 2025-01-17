@@ -1,12 +1,13 @@
 """ This is a dummy example """
+import os
 import openmeteo_requests
 from openmeteo_sdk.WeatherApiResponse import WeatherApiResponse
-
+from pathlib import Path
 import matplotlib.pyplot as plt
 import requests_cache
 import pandas as pd
 from retry_requests import retry
-from typing import Dict
+from typing import Dict, List, Optional, Union
 from references import API_URL, COORDINATES, VARIABLES, INI_DATE, END_DATE
 from dataclasses import dataclass
 
@@ -22,8 +23,9 @@ class Date:
     end_date: str
 
 class Meteo:
-    def __init__(self):
+    def __init__(self, cities: Optional[List[str]]):
         self.setup()
+        self.cities = cities
 
     @property
     def date(self):
@@ -38,7 +40,6 @@ class Meteo:
         city = City(name=city_name, latitude=COORDINATES[city_name]['latitude'], longitude=COORDINATES[city_name]['longitude'])
         date = self.date
         params = self.define_params(city, date)
-        print(params)
         self.responses = self.call_api(API_URL, params)
         return self.responses
     
@@ -61,7 +62,18 @@ class Meteo:
     
     @property
     def data(self):
-        return self.get_hourly_response(response)
+        df = pd.DataFrame({})
+        for city in self.cities:
+            df_ = self.get_city_data(city)
+            df = pd.concat([df, df_])
+        return df
+    
+    def get_city_data(self, city: str) -> pd.DataFrame:
+        response = self.get_data_meteo_api(city)[0]
+        df = self.get_hourly_response(response)
+        df = self.compute_additional_params(df)
+        df["city"] = city
+        return df
 
     @staticmethod
     def get_hourly_response(response: WeatherApiResponse) -> pd.DataFrame:
@@ -88,17 +100,46 @@ class Meteo:
         ).reset_index()
         df_monthly['month'] = df_monthly['month'].dt.to_timestamp()
         return df_monthly
+    
+    @staticmethod
+    def plot_weather_parameter(
+        df: pd.DataFrame, 
+        parameter: str = "temperature_2m_mean", 
+        title: Optional[str] = "",
+        output_filename: Optional[Union[Path, str]] = None
+    ):
+        if parameter not in df.columns:
+            raise ValueError(f"Parameter '{parameter}' not found in DataFrame.")
+        fig = plt.figure(figsize=(16, 8))
+        for city, city_data in df.groupby("city"):
+            plt.plot(
+                city_data["month"], 
+                city_data[parameter], 
+                label=city, 
+                marker='o', 
+                linestyle='-'
+            )
+        plt.title(title if title else f"{parameter.capitalize()} Across Cities", fontsize=16)
+        plt.xlabel("Month", fontsize=14)
+        plt.ylabel(parameter.replace('_', ' ').capitalize(), fontsize=14)
+        plt.legend(title="Cities", fontsize=12)
+        plt.grid()
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        if output_filename:
+            fig.savefig(output_filename)
 
-    # TODO: add plotting capabilities
-    # TODO: compute variables from dataframe
     # TODO: reformat code
 
 
 if __name__ == "__main__":
-    meteo = Meteo()
-    
-    response = meteo.get_data_meteo_api("Madrid")[0]
-    df = meteo.get_hourly_response(response)
-    df = meteo.compute_additional_params(df)
-    plt.plot(df["month"], df["temperature_2m_mean"])
-    plt.show()
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    FIG_FOLDER = os.path.join(script_dir, "figs")
+    os.makedirs(FIG_FOLDER, exist_ok=True)
+    data = Meteo(["Madrid", "London", "Rio"]).data
+    parameters = ["temperature_2m_mean", "precipitation_sum", "wind_speed_10m_max"]
+    [Meteo.plot_weather_parameter(
+        data, 
+        parameter=parameter, 
+        output_filename=os.path.join(FIG_FOLDER, f"{parameter}.png")
+    ) for parameter in parameters]
