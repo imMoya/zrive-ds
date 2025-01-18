@@ -1,6 +1,6 @@
 def main():
-    print("Hello from zrive-ds!")
+	print('Hello from zrive-ds!')
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+	main()
