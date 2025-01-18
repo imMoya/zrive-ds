@@ -2,6 +2,8 @@
 
 import os
 import warnings
+import requests
+from requests.exceptions import HTTPError, Timeout, RequestException
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -35,6 +37,10 @@ class Date:
 	end_date: str
 
 
+class FetchDataError(Exception):
+    pass
+
+
 class Meteo:
 	def __init__(self, cities: list[str] | None):
 		self.setup()
@@ -61,8 +67,23 @@ class Meteo:
 		return self.responses
 
 	def call_api(self, api_url: str, params: dict[str, Any]) -> WeatherApiResponse:
-		# TODO: validate response and handle possible errors
-		return self.openmeteo.weather_api(api_url, params=params)
+		response = self.openmeteo.weather_api(api_url, params=params)
+		return response
+	
+	@staticmethod
+	def call_api_requests(api_url: str, params: dict[str, Any]):
+		try:
+			response = requests.get(url=api_url, params=params)
+			response.raise_for_status()
+			return response.json()
+		except HTTPError as http_err:
+			raise FetchDataError(f"HTTP error occurred: {http_err}") from http_err
+		except Timeout as timeout_err:
+			raise FetchDataError(f"Request timed out: {timeout_err}") from timeout_err
+		except RequestException as req_err:
+			raise FetchDataError(f"An error occurred during the request: {req_err}") from req_err
+		except ValueError as json_err:
+			raise FetchDataError(f"Error decoding JSON: {json_err}") from json_err
 
 	@staticmethod
 	def define_params(city: City, date: Date) -> dict[str, Any]:
@@ -164,7 +185,7 @@ if __name__ == '__main__':
 	FIG_FOLDER = os.path.join(script_dir, 'figs')
 	os.makedirs(FIG_FOLDER, exist_ok=True)
 	data = Meteo(['Madrid', 'London', 'Rio']).data
-	print(Meteo(['Madrid']).data)
+	print(data)
 	parameters = ['temperature_2m_mean', 'precipitation_sum', 'wind_speed_10m_max']
 	[
 		Meteo.plot_weather_parameter(
@@ -174,3 +195,7 @@ if __name__ == '__main__':
 		)
 		for parameter in parameters
 	]
+	# Additional example of API call via requests... Put 400º of latitude to handle error...
+	city = City(name="Madrid", latitude= 400.416775, longitude= -3.703790)
+	date = Date(INI_DATE, END_DATE)
+	Meteo.call_api_requests(API_URL, Meteo.define_params(city, date))
