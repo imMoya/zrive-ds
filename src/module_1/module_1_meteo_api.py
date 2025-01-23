@@ -24,11 +24,12 @@ from src.module_1.references import (
 )
 
 warnings.filterwarnings(
-			'ignore',
-			category=UserWarning,
-			message='Converting to PeriodArray/Index representation '
-			'will drop timezone information',
-		)
+	'ignore',
+	category=UserWarning,
+	message='Converting to PeriodArray/Index representation '
+	'will drop timezone information',
+)
+
 
 @dataclass
 class City:
@@ -180,12 +181,13 @@ class Meteo:
 		if output_filename:
 			fig.savefig(output_filename)
 
+
 class MeteoRequests:
 	pass
 
 
 if __name__ == '__main__':
-	FIG_FOLDER = Path("output/module_1")
+	FIG_FOLDER = Path('output/module_1')
 	os.makedirs(FIG_FOLDER, exist_ok=True)
 	data = Meteo(['Madrid', 'London', 'Rio']).data
 	print(data)
@@ -200,4 +202,4 @@ if __name__ == '__main__':
 	# Put 400º of latitude to handle error...
 	city = City(name='Madrid', latitude=400.416775, longitude=-3.703790)
 	date = Date(INI_DATE, END_DATE)
-	#Meteo.call_api_requests(API_URL, Meteo.define_params(city, date))
+	# Meteo.call_api_requests(API_URL, Meteo.define_params(city, date))

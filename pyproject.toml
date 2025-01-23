@@ -13,6 +13,8 @@ dependencies = [
     "scikit-learn>=1.4.1post1",
     "retry-requests>=2.0.0",
     "pandas>=2.0.3",
+    "python-dotenv>=1.0.1",
+    "boto3>=1.36.4",
 ]
 
 [dependency-groups]
