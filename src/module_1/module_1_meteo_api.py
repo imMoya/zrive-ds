@@ -23,6 +23,12 @@ from src.module_1.references import (
 	VARIABLES,
 )
 
+warnings.filterwarnings(
+			'ignore',
+			category=UserWarning,
+			message='Converting to PeriodArray/Index representation '
+			'will drop timezone information',
+		)
 
 @dataclass
 class City:
@@ -46,9 +52,8 @@ class Meteo:
 		self.setup()
 		self.cities = cities
 
-	@property
-	def date(self) -> Date:
-		return Date(INI_DATE, END_DATE)
+	def get_date(self, start_date: str = INI_DATE, end_date: str = END_DATE) -> Date:
+		return Date(start_date, end_date)
 
 	def setup(self) -> None:
 		cache_session = requests_cache.CachedSession('.cache', expire_after=-1)
@@ -61,7 +66,7 @@ class Meteo:
 			latitude=COORDINATES[city_name]['latitude'],
 			longitude=COORDINATES[city_name]['longitude'],
 		)
-		date = self.date
+		date = self.get_date()
 		params = self.define_params(city, date)
 		self.responses = self.call_api(API_URL, params)
 		return self.responses
@@ -99,12 +104,12 @@ class Meteo:
 
 	@property
 	def data(self) -> pd.DataFrame:
-		df = pd.DataFrame({})
+		df_list = []
 		if self.cities is None:
 			raise ValueError('`cities` is None, but should be a list of str')
 		for city in self.cities:
-			df_ = self.get_city_data(city)
-			df = pd.concat([df, df_])
+			df_list.append(self.get_city_data(city))
+		df = pd.concat(df_list)
 		return df
 
 	def get_city_data(self, city: str) -> pd.DataFrame:
@@ -131,12 +136,6 @@ class Meteo:
 
 	@staticmethod
 	def compute_additional_params(df: pd.DataFrame) -> pd.DataFrame:
-		warnings.filterwarnings(
-			'ignore',
-			category=UserWarning,
-			message='Converting to PeriodArray/Index representation '
-			'will drop timezone information',
-		)
 		df['date'] = pd.to_datetime(df['date'])
 		df['month'] = df['date'].dt.to_period('M')
 		df_monthly = (
@@ -181,24 +180,24 @@ class Meteo:
 		if output_filename:
 			fig.savefig(output_filename)
 
+class MeteoRequests:
+	pass
+
 
 if __name__ == '__main__':
-	script_dir = os.path.dirname(os.path.abspath(__file__))
-	FIG_FOLDER = os.path.join(script_dir, 'figs')
+	FIG_FOLDER = Path("output/module_1")
 	os.makedirs(FIG_FOLDER, exist_ok=True)
 	data = Meteo(['Madrid', 'London', 'Rio']).data
 	print(data)
 	parameters = ['temperature_2m_mean', 'precipitation_sum', 'wind_speed_10m_max']
-	[
+	for parameter in parameters:
 		Meteo.plot_weather_parameter(
 			data,
 			parameter=parameter,
 			output_filename=os.path.join(FIG_FOLDER, f'{parameter}.png'),
 		)
-		for parameter in parameters
-	]
 	# Additional example of API call via requests...
 	# Put 400º of latitude to handle error...
 	city = City(name='Madrid', latitude=400.416775, longitude=-3.703790)
 	date = Date(INI_DATE, END_DATE)
-	Meteo.call_api_requests(API_URL, Meteo.define_params(city, date))
+	#Meteo.call_api_requests(API_URL, Meteo.define_params(city, date))
