@@ -15,10 +15,13 @@ dependencies = [
     "pandas>=2.0.3",
     "python-dotenv>=1.0.1",
     "boto3>=1.36.4",
+    "awscli>=1.37.5",
+    "pyarrow>=19.0.0",
 ]
 
 [dependency-groups]
 dev = [
+    "ipykernel>=6.29.5",
     "isort>=5.13.2",
     "mypy>=1.14.1",
     "pytest>=7.4.0",
