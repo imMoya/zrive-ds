@@ -17,6 +17,7 @@ dependencies = [
     "boto3>=1.36.4",
     "awscli>=1.37.5",
     "pyarrow>=19.0.0",
+    "seaborn>=0.13.2",
 ]
 
 [dependency-groups]
