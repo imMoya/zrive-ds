@@ -34,4 +34,17 @@ def extract_hour(df: pd.DataFrame, datetime_col: str, hour_col: str) -> pd.DataF
     df[hour_col] = df[datetime_col].dt.hour
     return df
 
+def extract_hour_minute(df: pd.DataFrame, datetime_col: str, hour_min_col: str) -> pd.DataFrame:
+    df[datetime_col] = pd.to_datetime(df[datetime_col])
+    df[hour_min_col] = pd.to_datetime(df[datetime_col].dt.strftime('%H:%M'), format='%H:%M').dt.time
+    return df
+
+def extract_time_features(df: pd.DataFrame, datetime_col: str) -> pd.DataFrame:
+    df[datetime_col] = pd.to_datetime(df[datetime_col])
+    df["year"] = df[datetime_col].dt.year
+    df["month"] = df[datetime_col].dt.month
+    df["day"] = df[datetime_col].dt.day
+    df["hour"] = df[datetime_col].dt.hour
+    df["minute"] = df[datetime_col].dt.minute
+    return df
 
