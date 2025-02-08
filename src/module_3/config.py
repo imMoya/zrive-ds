@@ -10,3 +10,5 @@ PREPROCESSOR_CONFIG = {
     'test_ratio': 0.1,
     'scaler_path': 'models/scaler.pkl',
 }
+
+PIPELINE_CONFIG = {'data_path': 'datasets/module_3/feature_frame_filtered.csv'}

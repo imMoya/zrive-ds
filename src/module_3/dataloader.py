@@ -1,9 +1,9 @@
-import pandas as pd
 import logging
-from typing_extensions import Annotated
-from pydantic import BaseModel, Field, field_validator, ValidationError
-from typing import Optional
 from datetime import datetime
+from typing import Annotated
+
+import pandas as pd
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 logging.basicConfig(
     level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s'
@@ -26,19 +26,19 @@ class DataSchema(BaseModel):
     set_as_regular: Annotated[int, Field(ge=0, le=1)]
     normalised_price: Annotated[float, Field(ge=0)]
     discount_pct: Annotated[float, Field(ge=-100, le=100)]
-    vendor: Optional[Annotated[str, Field(min_length=1)]]
+    vendor: Annotated[str, Field(min_length=1)] | None
     global_popularity: Annotated[float, Field(ge=0, le=1)]
     count_adults: Annotated[int, Field(ge=0)]
     count_children: Annotated[int, Field(ge=0)]
     count_babies: Annotated[int, Field(ge=0)]
     count_pets: Annotated[int, Field(ge=0)]
     people_ex_baby: Annotated[int, Field(ge=0)]
-    days_since_purchase_variant_id: Optional[Annotated[int, Field(ge=0)]]
-    avg_days_to_buy_variant_id: Optional[Annotated[float, Field(ge=0)]]
-    std_days_to_buy_variant_id: Optional[Annotated[float, Field(ge=0)]]
-    days_since_purchase_product_type: Optional[Annotated[int, Field(ge=0)]]
-    avg_days_to_buy_product_type: Optional[Annotated[float, Field(ge=0)]]
-    std_days_to_buy_product_type: Optional[Annotated[float, Field(ge=0)]]
+    days_since_purchase_variant_id: Annotated[int, Field(ge=0)] | None
+    avg_days_to_buy_variant_id: Annotated[float, Field(ge=0)] | None
+    std_days_to_buy_variant_id: Annotated[float, Field(ge=0)] | None
+    days_since_purchase_product_type: Annotated[int, Field(ge=0)] | None
+    avg_days_to_buy_product_type: Annotated[float, Field(ge=0)] | None
+    std_days_to_buy_product_type: Annotated[float, Field(ge=0)] | None
 
     @field_validator('created_at', 'order_date', mode='before')
     @classmethod

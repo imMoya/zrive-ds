@@ -1,9 +1,10 @@
-import pandas as pd
 import logging
+
 import joblib
-from typing import Tuple
-from sklearn.preprocessing import StandardScaler
+import numpy as np
+import pandas as pd
 from config import PREPROCESSOR_CONFIG
+from sklearn.preprocessing import StandardScaler
 
 # Configure Logger
 logging.basicConfig(
@@ -41,7 +42,7 @@ class Preprocessor:
         train_ratio: float = 0.7,
         val_ratio: float = 0.2,
         test_ratio: float = 0.1,
-    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """Splits data chronologically per user."""
         if user_col not in df.columns or order_col not in df.columns:
             logger.error(
@@ -89,7 +90,11 @@ class Preprocessor:
 
     def fit_transform(
         self, df: pd.DataFrame, config: dict = PREPROCESSOR_CONFIG
-    ) -> Tuple:
+    ) -> tuple[
+        tuple[np.ndarray, np.ndarray],
+        tuple[np.ndarray, np.ndarray],
+        tuple[np.ndarray, np.ndarray],
+    ]:
         """Applies full preprocessing pipeline to the DataFrame."""
         datetime_col = config.get('datetime_col', 'created_at')
         user_col = config.get('user_col', 'user_id')
