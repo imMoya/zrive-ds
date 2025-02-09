@@ -1,11 +1,12 @@
 from pathlib import Path
 from typing import Annotated
+from logger import logger
 
 import numpy as np
 import pandas as pd
 from config import PIPELINE_CONFIG
 from dataloader import DataLoader
-from preprocessor import Preprocessor
+from preprocessor import Preprocessor, PreprocessorConfig
 from pydantic import BaseModel
 from zenml import pipeline, step
 from zenml.integrations.numpy.materializers.numpy_materializer import NumpyMaterializer
@@ -41,7 +42,7 @@ def preprocess_data(
     Annotated[np.ndarray, 'X_test_scaled'],
     Annotated[np.ndarray, 'y_test'],
 ]:
-    preprocessor = Preprocessor()
+    preprocessor = Preprocessor(config=PreprocessorConfig())
     (X_train_scaled, y_train), (X_val_scaled, y_val), (X_test_scaled, y_test) = (
         preprocessor.fit_transform(df)
     )
@@ -58,5 +59,7 @@ def training_pipeline(params: ProcessingParameters):
 
 
 if __name__ == '__main__':
+    logger.info("Starting the pipeline")
     params = ProcessingParameters()
     training_pipeline(params)
+    logger.info("Pipeline execution completed.")

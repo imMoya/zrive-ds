@@ -3,8 +3,22 @@ import logging
 import joblib
 import numpy as np
 import pandas as pd
-from config import PREPROCESSOR_CONFIG
-from sklearn.preprocessing import StandardScaler
+from config import (
+    CATEGORICAL_COLS,
+    DATETIME_COL,
+    DROP_COLS,
+    ORDER_COL,
+    PREPROCESSOR_CONFIG,
+    SCALER,
+    SCALER_PATH,
+    TARGET_COL,
+    TEST_RATIO,
+    TRAIN_RATIO,
+    USER_COL,
+    VAL_RATIO,
+)
+from pydantic import BaseModel
+from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 
 # Configure Logger
 logging.basicConfig(
@@ -12,10 +26,30 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+SCALERS = {
+    'standard': StandardScaler(),
+    'minmax': MinMaxScaler(),
+    'robust': RobustScaler(),
+}
+
+
+class PreprocessorConfig(BaseModel):
+    datetime_col: str = DATETIME_COL
+    user_col: str = USER_COL
+    order_col: str = ORDER_COL
+    target_col: str = TARGET_COL
+    categorical_cols: list[str] = CATEGORICAL_COLS
+    drop_cols: list[str] = DROP_COLS
+    train_ratio: float = TRAIN_RATIO
+    val_ratio: float = VAL_RATIO
+    test_ratio: float = TEST_RATIO
+    scaler: str = SCALER
+    scaler_path: str = SCALER_PATH
+
 
 class Preprocessor:
-    def __init__(self):
-        self.scaler = StandardScaler()
+    def __init__(self, config: PreprocessorConfig):
+        self.config = config
 
     def extract_time_features(
         self, df: pd.DataFrame, datetime_col: str
@@ -70,22 +104,14 @@ class Preprocessor:
         logger.info('Completed chronological user split.')
         return train_df, val_df, test_df
 
-    def save_scaler(self, scaler_filename: str):
+    @staticmethod
+    def save_scaler(scaler, scaler_filename: str):
         """Saves the fitted scaler to a file."""
         try:
-            joblib.dump(self.scaler, scaler_filename)
+            joblib.dump(scaler, scaler_filename)
             logger.info(f'Scaler saved to {scaler_filename}')
         except Exception as e:
             logger.error(f'Error saving scaler: {e}')
-            raise
-
-    def load_scaler(self, scaler_filename: str):
-        """Loads a saved scaler from a file."""
-        try:
-            self.scaler = joblib.load(scaler_filename)
-            logger.info(f'Scaler loaded from {scaler_filename}')
-        except Exception as e:
-            logger.error(f'Error loading scaler: {e}')
             raise
 
     def fit_transform(
@@ -105,6 +131,8 @@ class Preprocessor:
         train_ratio = config.get('train_ratio', 0.7)
         val_ratio = config.get('val_ratio', 0.2)
         test_ratio = config.get('test_ratio', 0.1)
+        scaler = config.get('scaler', StandardScaler())
+        scaler_path = config.get('scaler_path', 'models/scaler.pkl')
 
         # Extract time features
         df = self.extract_time_features(df, datetime_col)
@@ -132,10 +160,10 @@ class Preprocessor:
         X_test, y_test = test_df.drop(columns=[target_col]), test_df[target_col].values
 
         # Scale features
-        X_train_scaled = self.scaler.fit_transform(X_train)
-        X_val_scaled = self.scaler.transform(X_val)
-        X_test_scaled = self.scaler.transform(X_test)
-        self.save_scaler(config.get('scaler_path', 'models/scaler.pkl'))
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_val_scaled = scaler.transform(X_val)
+        X_test_scaled = scaler.transform(X_test)
+        self.save_scaler(scaler, scaler_path)
         logger.info('Completed feature scaling.')
 
         return (X_train_scaled, y_train), (X_val_scaled, y_val), (X_test_scaled, y_test)

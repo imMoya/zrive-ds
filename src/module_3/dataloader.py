@@ -1,14 +1,10 @@
-import logging
+from logger import logger
 from datetime import datetime
 from typing import Annotated
 
 import pandas as pd
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
-logging.basicConfig(
-    level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 
 class DataSchema(BaseModel):
@@ -65,4 +61,4 @@ class DataLoader:
                 DataSchema(**row.to_dict())  # Validate each row
             except ValidationError as e:
                 logger.error(f'Data validation error: {e}')
-                raise ValueError(f'Data validation error: {e}')
+                raise ValueError(f'Data validation error: {e}') from e
