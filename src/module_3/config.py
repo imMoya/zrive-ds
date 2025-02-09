@@ -3,12 +3,14 @@
 from pathlib import Path
 
 # Define paths for caching and training data
-DATA = Path('datasets/module_3/')
-MODELS = Path('models/')
+ROOT = Path(__file__).resolve().parents[2]
+DATA = Path(ROOT, 'datasets/module_3/')
+DATA_PATH = Path(DATA, 'feature_frame_filtered.csv')
+MODELS = Path(ROOT, 'models/')
 SCALER_PATH = Path(MODELS, 'scaler.pkl')
 
 # Configure random state for reproducibility
-RANDOM = 42
+RANDOM_STATE = 42
 
 # Define dataset columns for feature engineering
 DATETIME_COL = 'created_at'
@@ -24,19 +26,4 @@ VAL_RATIO = 0.2
 TEST_RATIO = 0.1
 
 # Parameters for pipeline configuration
-SCALER = "standard"
-
-PREPROCESSOR_CONFIG = {
-    'datetime_col': 'created_at',
-    'user_col': 'user_id',
-    'order_col': 'user_order_seq',
-    'target_col': 'outcome',
-    'categorical_cols': ['product_type'],
-    'drop_cols': ['created_at', 'order_date', 'vendor'],
-    'train_ratio': 0.7,
-    'val_ratio': 0.2,
-    'test_ratio': 0.1,
-    'scaler_path': 'models/scaler.pkl',
-}
-
-PIPELINE_CONFIG = {'data_path': 'datasets/module_3/feature_frame_filtered.csv'}
+SCALER = 'standard'

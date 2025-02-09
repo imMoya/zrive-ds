@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/ignaciomoyaredondo/github/zrive/zrive-ds/mlruns/0/ffc3b71bf08b4926b4554ffa2a2ed3fc/artifacts
+end_time: 1739138369610
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+name: ''
+run_id: ffc3b71bf08b4926b4554ffa2a2ed3fc
+run_uuid: ffc3b71bf08b4926b4554ffa2a2ed3fc
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1739138367559
+status: 3
+tags: []
+user_id: ignaciomoyaredondo

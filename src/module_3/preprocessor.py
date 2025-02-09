@@ -8,7 +8,6 @@ from config import (
     DATETIME_COL,
     DROP_COLS,
     ORDER_COL,
-    PREPROCESSOR_CONFIG,
     SCALER,
     SCALER_PATH,
     TARGET_COL,
@@ -77,6 +76,8 @@ class Preprocessor:
         val_ratio: float = 0.2,
         test_ratio: float = 0.1,
     ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        # TODO: Check that for production, when val_ratio is 0,
+        # only train and test are returned
         """Splits data chronologically per user."""
         if user_col not in df.columns or order_col not in df.columns:
             logger.error(
@@ -115,24 +116,25 @@ class Preprocessor:
             raise
 
     def fit_transform(
-        self, df: pd.DataFrame, config: dict = PREPROCESSOR_CONFIG
+        self,
+        df: pd.DataFrame,
     ) -> tuple[
         tuple[np.ndarray, np.ndarray],
         tuple[np.ndarray, np.ndarray],
         tuple[np.ndarray, np.ndarray],
     ]:
         """Applies full preprocessing pipeline to the DataFrame."""
-        datetime_col = config.get('datetime_col', 'created_at')
-        user_col = config.get('user_col', 'user_id')
-        order_col = config.get('order_col', 'user_order_seq')
-        target_col = config.get('target_col', 'outcome')
-        categorical_cols = config.get('categorical_cols', ['product_type'])
-        drop_cols = config.get('drop_cols', ['created_at', 'order_date', 'vendor'])
-        train_ratio = config.get('train_ratio', 0.7)
-        val_ratio = config.get('val_ratio', 0.2)
-        test_ratio = config.get('test_ratio', 0.1)
-        scaler = config.get('scaler', StandardScaler())
-        scaler_path = config.get('scaler_path', 'models/scaler.pkl')
+        datetime_col = self.config.datetime_col
+        user_col = self.config.user_col
+        order_col = self.config.order_col
+        target_col = self.config.target_col
+        categorical_cols = self.config.categorical_cols
+        drop_cols = self.config.drop_cols
+        train_ratio = self.config.train_ratio
+        val_ratio = self.config.val_ratio
+        test_ratio = self.config.test_ratio
+        scaler = SCALERS[self.config.scaler]
+        scaler_path = self.config.scaler_path
 
         # Extract time features
         df = self.extract_time_features(df, datetime_col)

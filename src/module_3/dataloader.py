@@ -1,10 +1,9 @@
-from logger import logger
 from datetime import datetime
 from typing import Annotated
 
 import pandas as pd
+from logger import logger
 from pydantic import BaseModel, Field, ValidationError, field_validator
-
 
 
 class DataSchema(BaseModel):
