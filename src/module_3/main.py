@@ -55,26 +55,28 @@ def train_model(X_train: np.ndarray, y_train: np.ndarray):
     model = Model(config=ModelConfig())
     with mlflow.start_run() as run:
         model.train(X_train, y_train)
-    logger.info("Model successfully trained.")
+    logger.info('Model successfully trained.')
     return model
+
 
 @step
 def eval_model(model: Model, X_test: np.ndarray, y_test: np.ndarray):
     mse = model.evaluate(X_test, y_test)
-    logger.info("Model evaluated.")
+    logger.info('Model evaluated.')
     return mse
+
 
 @step
 def save_model_with_mlflow(model: Model):
     with mlflow.start_run():
-        logger.info("Model saved in MLflow.")
+        logger.info('Model saved in MLflow.')
 
 
 @step
 def log_metrics_with_mlflow(mse: float):
     with mlflow.start_run():
-        mlflow.log_metric("mean_squared_error", mse)
-        logger.info(f"Logged MSE to MLflow: {mse}")
+        mlflow.log_metric('mean_squared_error', mse)
+        logger.info(f'Logged MSE to MLflow: {mse}')
 
 
 @pipeline
@@ -96,6 +98,7 @@ def training_pipeline(params: ProcessingParameters):
 
 if __name__ == '__main__':
     logger.info('Starting the pipeline')
+    mlflow.set_experiment("test")
     params = ProcessingParameters()
     training_pipeline(params)
     # TODO: Check mlflow https://github.com/mlflow/mlflow/blob/master/examples/sklearn_logistic_regression/train.pyhttps://github.com/mlflow/mlflow/blob/master/examples/sklearn_logistic_regression/train.py

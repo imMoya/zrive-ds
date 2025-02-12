@@ -32,9 +32,8 @@ class Model:
     def train(self, X_train: np.ndarray, y_train: np.ndarray):
         self.model.fit(X_train, y_train)
         return self.model
-    
+
     def evaluate(self, X_test: np.ndarray, y_test: np.ndarray):
         y_pred = self.model.predict(X_test)
         mse = mean_squared_error(y_test, y_pred)
         return mse
-
