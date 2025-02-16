@@ -103,3 +103,7 @@ if __name__ == '__main__':
     training_pipeline(params)
     # TODO: Check mlflow https://github.com/mlflow/mlflow/blob/master/examples/sklearn_logistic_regression/train.pyhttps://github.com/mlflow/mlflow/blob/master/examples/sklearn_logistic_regression/train.py
     logger.info('Pipeline execution completed.')
+    # TODO: Create a base model to compete with
+    # TODO: Create in the workflow a step to log the metrics to MLflow (including roc curve and confusion matrix)
+    # TODO: Create a step to select a set of model and plot them based on the MLFlow outputs
+
