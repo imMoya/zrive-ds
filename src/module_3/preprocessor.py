@@ -97,7 +97,7 @@ class Preprocessor:
         df: pd.DataFrame,
     ) -> tuple[
         tuple[np.ndarray, np.ndarray],
-        tuple[np.ndarray, np.ndarray],
+        tuple[np.ndarray | None, np.ndarray | None],
         tuple[np.ndarray, np.ndarray],
     ]:
         """Applies full preprocessing pipeline to the DataFrame."""
@@ -152,6 +152,8 @@ class Preprocessor:
         X_train_scaled = scaler.fit_transform(X_train)
         if val_ratio >= VAL_RATIO_EPSILON:
             X_val_scaled = scaler.transform(X_val)
+        else: 
+            X_val_scaled, y_val = None, None
         X_test_scaled = scaler.transform(X_test)
             
         self.save_scaler(scaler, scaler_path)
