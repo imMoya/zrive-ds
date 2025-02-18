@@ -1,6 +1,8 @@
+reformat:
+	uv run ruff format src tests
+
 lint:
-	poetry run black src tests
+	uv run ruff check --fix src tests
 
 test:
-	poetry run flake8 src tests
-	poetry run pytest tests
+	uv run pytest tests
