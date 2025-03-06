@@ -161,3 +161,8 @@ cython_debug/
 .cache.sqlite
 
 datasets/
+mlruns/
+**figs/
+**png
+src/module_3/models
+src/module_5/data

@@ -1,14 +1,16 @@
 import numpy as np
-from config import RANDOM_STATE
+from pathlib import Path
+from config import RANDOM_STATE, HYPERPARAMS, MODEL_TYPE
+from sklearn.metrics import precision_recall_curve, roc_curve, roc_auc_score, auc
 from pydantic import BaseModel, Field
-from sklearn.linear_model import ElasticNet, Lasso, LinearRegression, Ridge
+from sklearn.linear_model import ElasticNet, Lasso, LinearRegression, Ridge, LogisticRegression
 from sklearn.metrics import mean_squared_error
-
+from dataclasses import dataclass
 
 class ModelConfig(BaseModel):
-    model_name: str = 'linear_regression'
+    model_name: str = MODEL_TYPE
     random_state: int = RANDOM_STATE
-    hyperparameters: dict = Field(default_factory=dict)
+    hyperparameters: dict = HYPERPARAMS
 
 
 class Model:
@@ -22,6 +24,7 @@ class Model:
             'lasso': Lasso,
             'ridge': Ridge,
             'elastic_net': ElasticNet,
+            'logistic_regression': LogisticRegression
         }.get(self.config.model_name)
 
         if model_class is None:
@@ -32,9 +35,28 @@ class Model:
     def train(self, X_train: np.ndarray, y_train: np.ndarray):
         self.model.fit(X_train, y_train)
         return self.model
-    
-    def evaluate(self, X_test: np.ndarray, y_test: np.ndarray):
-        y_pred = self.model.predict(X_test)
-        mse = mean_squared_error(y_test, y_pred)
-        return mse
+
+@dataclass
+class Metrics:
+    precision: np.ndarray
+    recall: np.ndarray
+    fpr: np.ndarray
+    tpr: np.ndarray
+    pr_auc: float
+    roc_auc: float
+
+def compute_and_log_metrics(y_true, y_pred):
+    precision, recall, _ = precision_recall_curve(y_true, y_pred)
+    pr_auc = auc(recall, precision)
+
+    fpr, tpr, _ = roc_curve(y_true, y_pred)
+    roc_auc = roc_auc_score(y_true, y_pred)
+    return Metrics(
+        precision=precision,
+        recall=recall,
+        fpr=fpr,
+        tpr=tpr,
+        pr_auc=pr_auc,
+        roc_auc=roc_auc
+    )
 
